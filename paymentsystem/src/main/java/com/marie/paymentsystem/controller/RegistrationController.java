@@ -27,6 +27,8 @@ public class RegistrationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    //TODO logout ღილაკზე ბაგია და გასასწორებელია , მაინც ჩანს
+
     @GetMapping("/register")
     public String register(Model model) {
         RegistrationDTO registrationDTO = new RegistrationDTO();
@@ -50,6 +52,13 @@ public class RegistrationController {
             appUser.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
             appUser.setCreatedAt(new Date());
             appUser.setUserRoles(UserRoles.CUSTOMER);
+
+            // Determines user role based on email domain
+            if (registrationDTO.getEmail().endsWith("@sky.inc")) {
+                appUser.setUserRoles(UserRoles.ADMIN);
+            } else {
+                appUser.setUserRoles(UserRoles.CUSTOMER);
+            }
 
             appUserRepository.save(appUser);
 

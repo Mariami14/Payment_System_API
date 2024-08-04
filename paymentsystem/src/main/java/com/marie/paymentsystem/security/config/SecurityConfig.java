@@ -23,6 +23,7 @@ public class SecurityConfig {
                         .antMatchers("/register").permitAll()
                         .antMatchers("/login").permitAll()
                         .antMatchers("/logout").permitAll()
+                        .antMatchers("/admin/**").hasRole("ADMIN") // admin-only access
                         .anyRequest().authenticated() //any other url requires user authentication
                 )
                 .formLogin(form -> form //define login and logout functionalities
