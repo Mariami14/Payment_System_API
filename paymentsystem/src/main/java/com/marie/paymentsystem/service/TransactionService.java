@@ -28,6 +28,10 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
+    public void saveTransaction(Transaction transaction) {
+        transactionRepository.save(transaction);
+    }
+
     public List<Transaction> getTransactionsByUser(Long userId) {
         return transactionRepository.findByAppUserId(userId);
     }
