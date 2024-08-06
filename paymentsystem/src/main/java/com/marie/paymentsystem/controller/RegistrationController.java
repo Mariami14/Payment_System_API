@@ -5,20 +5,21 @@ import com.marie.paymentsystem.model.model.AppUser;
 import com.marie.paymentsystem.model.repository.AppUserRepository;
 import com.marie.paymentsystem.model.repository.UserRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Date;
+import java.util.List;
 
-@Controller
+@RestController
 public class RegistrationController {
 
     @Autowired
@@ -33,20 +34,28 @@ public class RegistrationController {
     public String register(Model model) {
         RegistrationDTO registrationDTO = new RegistrationDTO();
         model.addAttribute("registrationDTO", registrationDTO);
-        model.addAttribute("success",false);
+        model.addAttribute("success", false);
         return "register";
     }
 
     @PostMapping("/register")
-    public String registerUser(@Valid @ModelAttribute("registrationDTO") RegistrationDTO registrationDTO, BindingResult result, Model model) {
+    public ResponseEntity<?> registerUser(@Valid @ModelAttribute("registrationDTO") RegistrationDTO registrationDTO, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            return "register";
+            return ResponseEntity.badRequest().body(result.getAllErrors());
         }
+
+        AppUser existingUser = appUserRepository.findByEmail(registrationDTO.getEmail());
+        if (existingUser != null) {
+            result.rejectValue("email", null, "There is already an account registered with that email");
+            return ResponseEntity.badRequest().body("There is already an account registered with that email");
+        }
+
         try {
+
             var bCryptEncoder = new BCryptPasswordEncoder();
 
             AppUser appUser = new AppUser();
-            appUser.setName(registrationDTO.getName());
+            appUser.setFirstName(registrationDTO.getName());
             appUser.setlastName(registrationDTO.getlastName());
             appUser.setEmail(registrationDTO.getEmail());
             appUser.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
@@ -65,20 +74,15 @@ public class RegistrationController {
             //to clear registration form add new DTO object
             model.addAttribute("registrationDTO", new RegistrationDTO());
             //to display success message
-            model.addAttribute("success",true);
+            model.addAttribute("success", true);
+
+            return ResponseEntity.ok("User registered successfully");
 
         } catch (Exception ex) {
-            result.addError(new FieldError("registrationDTO", "name", ex.getMessage()));
-        }
-
-        AppUser existingUser = appUserRepository.findByEmail(registrationDTO.getEmail());
-        if (existingUser != null) {
-            result.rejectValue("email", null, "There is already an account registered with that email");
-            return "register";
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
 
 
-        return "redirect:/login";
     }
 
 

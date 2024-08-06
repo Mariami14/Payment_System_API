@@ -6,22 +6,24 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table (name = "Users")
+@Table(name = "Users")
 public class AppUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String firstName;
     private String lastName;
-    @Column (unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String email; // should be unique to be used as username
     private String password;
     private Date createdAt;
 
-    @Enumerated (EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private UserRoles userRoles;
+
+
 
     public Long getId() {
         return id;
@@ -31,12 +33,12 @@ public class AppUser {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String name) {
+        this.firstName = name;
     }
 
     public String getlastName() {
