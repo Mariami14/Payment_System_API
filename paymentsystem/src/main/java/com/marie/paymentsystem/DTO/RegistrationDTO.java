@@ -5,7 +5,6 @@
     import javax.validation.constraints.Size;
 
     public class RegistrationDTO {
-        //TODO ანოტაციები გამოსაკვლევი, notempty ვაძლევს საშუალებას რომ საიზი გამოვიყენოთ
 
         @NotEmpty(message = "First Name is required")
         private String name;

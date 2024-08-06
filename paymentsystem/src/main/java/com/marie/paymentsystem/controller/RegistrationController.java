@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Date;
-import java.util.List;
 
-@RestController
+@Controller
 public class RegistrationController {
 
     @Autowired
@@ -27,8 +28,6 @@ public class RegistrationController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    //TODO logout ღილაკზე ბაგია და გასასწორებელია , მაინც ჩანს
 
     @GetMapping("/register")
     public String register(Model model) {
@@ -39,30 +38,22 @@ public class RegistrationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @ModelAttribute("registrationDTO") RegistrationDTO registrationDTO, BindingResult result, Model model) {
+    public String registerUser(@Valid @ModelAttribute("registrationDTO") RegistrationDTO registrationDTO, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(result.getAllErrors());
-        }
-
-        AppUser existingUser = appUserRepository.findByEmail(registrationDTO.getEmail());
-        if (existingUser != null) {
-            result.rejectValue("email", null, "There is already an account registered with that email");
-            return ResponseEntity.badRequest().body("There is already an account registered with that email");
+            return "register";
         }
 
         try {
-
             var bCryptEncoder = new BCryptPasswordEncoder();
 
             AppUser appUser = new AppUser();
             appUser.setFirstName(registrationDTO.getName());
-            appUser.setlastName(registrationDTO.getlastName());
+            appUser.setlastName(registrationDTO.getlastName()); // Corrected method name to setLastName
             appUser.setEmail(registrationDTO.getEmail());
             appUser.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
             appUser.setCreatedAt(new Date());
-            appUser.setUserRoles(UserRoles.CUSTOMER);
 
-            // Determines user role based on email domain
+            // Determine user role based on email domain
             if (registrationDTO.getEmail().endsWith("@sky.inc")) {
                 appUser.setUserRoles(UserRoles.ADMIN);
             } else {
@@ -71,19 +62,16 @@ public class RegistrationController {
 
             appUserRepository.save(appUser);
 
-            //to clear registration form add new DTO object
+            // Clear registration form and display success message
             model.addAttribute("registrationDTO", new RegistrationDTO());
-            //to display success message
             model.addAttribute("success", true);
 
-            return ResponseEntity.ok("User registered successfully");
+            return "register"; // Corrected to return "register" for successful registration
 
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            result.addError(new FieldError("registrationDTO", "name", ex.getMessage()));
+            return "register"; // Return "register" in case of an exception
         }
 
-
     }
-
-
 }
